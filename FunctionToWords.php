@@ -51,7 +51,7 @@ class FunctionToWords
             $lsString .= self::tenWords($tenLats);
         }
 
-        //$lsString .= (($tenLats % 10 == 1 && $tenLats != 11) ? 'eiro' : 'eiro');
+        $lsString .= 'eiro';
 
         return $lsString . ' ' . $santString;
 
