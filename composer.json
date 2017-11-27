@@ -1,0 +1,12 @@
+{
+    "name": "uldisn/FunctionToWords",
+    "description": "amount convert tot words",
+    "type": "library",
+    "keywords": [""],
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "uldisn\\FunctionToWords\\": ""
+        }
+    }
+}
