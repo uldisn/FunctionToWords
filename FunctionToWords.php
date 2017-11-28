@@ -6,8 +6,35 @@ class FunctionToWords
     private static $numb = ['nulle', 'viens', 'divi', 'trīs', 'četri', 'pieci', 'seši', 'septiņi', 'astoņi', 'deviņi', 'desmit'];
     private static $tens = ['', 'vien', 'div', 'trīs', 'četr', 'piec', 'seš', 'septiņ', 'astoņ', 'deviņ'];
     private static $bigones = [100 => 'simti', 1000 => 'tūkstoši', 1000000 => 'miljoni', 1000000000 => 'miljardi'];
+    
+    private static $currencies = [
+        'EUR' => [
+            'mainSingular'  => 'eiro',
+            'mainPlural'    => 'eiro',
+            'minorSingular' => 'cents',
+            'minorPlural'   => 'centi',
+        ],
+        'USD' => [
+            'mainSingular'  => 'dolārs',
+            'mainPlural'    => 'dolāri',
+            'minorSingular' => 'cents',
+            'minorPlural'   => 'centi',
+        ],
+        'RUB' => [
+            'mainSingular'  => 'rublis',
+            'mainPlural'    => 'rubļi',
+            'minorSingular' => 'kapeika',
+            'minorPlural'   => 'kapeikas',
+        ],
+        'CZK' => [
+            'mainSingular'  => 'krona',
+            'mainPlural'    => 'krona',
+            'minorSingular' => 'haléru', // @todo ???
+            'minorPlural'   => 'haléru', // @todo ???
+        ],
+    ];
 
-    public static function toWords($num)
+    public static function toWords($num, $currency = 'EUR')
     {
 
         $num = number_format($num, 2, '.', '');
@@ -17,9 +44,9 @@ class FunctionToWords
         //apstrādā centus
         if ($numParts[1] > 0) {
             $santString = self::tenWords($numParts[1]) .
-                (($numParts[1] % 10 == 1 && $numParts[1] != 11) ? 'cents ' : 'centi ');
+                (($numParts[1] % 10 == 1 && $numParts[1] != 11) ? self::$currencies[$currency]['minorSingular'] : self::$currencies[$currency]['minorPlural']);
         } else {
-            $santString = 'nulle centi';
+            $santString = 'nulle ' . self::$currencies[$currency]['minorPlural'];
         }
 
         //apstrādā eiro
@@ -51,7 +78,7 @@ class FunctionToWords
             $lsString .= self::tenWords($tenLats);
         }
 
-        $lsString .= 'eiro';
+        $lsString .= (($tenLats % 10 == 1 && $tenLats != 11) ? self::$currencies[$currency]['mainSingular'] : self::$currencies[$currency]['mainPlural']);
 
         return $lsString . ' ' . $santString;
 
