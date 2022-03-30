@@ -3,11 +3,10 @@ namespace uldisn\FunctionToWords;
 class FunctionToWords
 {
 
-    private static $numb = ['nulle', 'viens', 'divi', 'trīs', 'četri', 'pieci', 'seši', 'septiņi', 'astoņi', 'deviņi', 'desmit'];
-    private static $tens = ['', 'vien', 'div', 'trīs', 'četr', 'piec', 'seš', 'septiņ', 'astoņ', 'deviņ'];
-    private static $bigones = [100 => 'simti', 1000 => 'tūkstoši', 1000000 => 'miljoni', 1000000000 => 'miljardi'];
-    
-    private static $currencies = [
+    private static array $numb = ['nulle', 'viens', 'divi', 'trīs', 'četri', 'pieci', 'seši', 'septiņi', 'astoņi', 'deviņi', 'desmit'];
+    private static array $tens = ['', 'vien', 'div', 'trīs', 'četr', 'piec', 'seš', 'septiņ', 'astoņ', 'deviņ'];
+
+    private static array $currencies = [
         'EUR' => [
             'mainSingular'  => 'eiro',
             'mainPlural'    => 'eiro',
@@ -208,70 +207,108 @@ class FunctionToWords
         ]
     ];
 
-    public static function toWords($num, $currency = 'EUR')
+    public static function toWords($num, $currency = 'EUR'): string
     {
 
         $num = number_format($num, 2, '.', '');
-        $numParts = explode('.', $num);
-        $lsString = '';
+        [$intergers, $decimals] = explode('.', $num);
 
-        //apstrādā centus
-        if ($numParts[1] > 0) {
-            $santString = self::tenWords($numParts[1]) .
-                (($numParts[1] % 10 == 1 && $numParts[1] != 11) ? self::$currencies[$currency]['minorSingular'] : self::$currencies[$currency]['minorPlural']);
+        $currencyName = self::$currencies[$currency];
+
+        $integerParts = str_split(substr('000000000' . $intergers, -9), 3);
+        $integerParts = array_reverse($integerParts);
+
+        $r = '';
+
+        /** miljoni */
+        if ((int)$integerParts[2]) {
+            $r .= self::hundredToWords($integerParts[2]) .
+                ' ' . (self::isSngular($integerParts[2]) ? 'miljons' : 'miljoni') .
+                ' ';
+        }
+
+        /** tukstoši */
+        if ((int)$integerParts[1]) {
+            $r .= self::hundredToWords($integerParts[1]) .
+                ' ' .
+                (self::isSngular($integerParts[1]) ? 'tūkstots' : 'tūkstoši') .
+                ' ';
+        }
+        $r .= self::hundredToWords($integerParts[0])
+            . ' '
+            . (self::isSngular($integerParts[0]) ? $currencyName['mainSingular'] : $currencyName['mainPlural'])
+            . ' ';
+
+        /** decimali */
+        $decimals = (int)$decimals;
+        if ($decimals > 0) {
+            $r .= ' ' . self::tenWords($decimals) .
+                ' ' .
+                (self::isSngular($decimals) ? $currencyName['minorSingular'] : $currencyName['minorPlural']);
         } else {
-            $santString = 'nulle ' . self::$currencies[$currency]['minorPlural'];
+            $r .= ' nulle ' . $currencyName['minorPlural'];
         }
 
-        //apstrādā eiro
-
-        $thousands = floor($numParts[0] / 1000);
-        if (99 < $thousands) {
-            return ('ERROR: Nevar konvertēt lielāku summu par 99 999.99');
-        }
-
-        if (!empty($thousands)) {
-            $lsString = self::tenWords($thousands) .
-                (($thousands % 10 == 1 && $thousands != 11) ? ' tūkstotis ' : 'tūkstoši ');
-        }
-
-        $hundreds = floor(substr($numParts[0], -3) / 100);
-
-        if (!empty($hundreds)) {
-            $lsString .= self::$numb[intval($hundreds)] .
-                ($hundreds % 10 == 1 ? ' simts ' : ' simti ');
-        }
-
-        if (strlen($numParts[0]) == 1) {
-            $tenLats = substr($numParts[0], -1);
-        } else {
-            $tenLats = substr($numParts[0], -2);
-        }
-
-        if ($tenLats > 0 || empty($lsString)) {
-            $lsString .= self::tenWords($tenLats);
-        }
-
-        $lsString .= (($tenLats % 10 == 1 && $tenLats != 11) ? self::$currencies[$currency]['mainSingular'] : self::$currencies[$currency]['mainPlural']);
-
-        return $lsString . ' ' . $santString;
+        return $r;
 
     }
 
-    public static function tenWords($num)
+    public static function tenWords(int $num): string
     {
 
         if ($num > 19) {
-            $firstDigit = (int)$num / 10;
-            $secondDigit = (int)$num % 10;
-            if ($secondDigit == 0)
-                return self::$tens[$firstDigit] . 'desmit ';
-            else
-                return self::$tens[$firstDigit] . 'desmit ' . self::$numb[$secondDigit] . ' ';
-        } elseif ($num <= 19 AND $num > 10) {
-            return self::$tens[$num % 10] . 'padsmit ';
-        } elseif ($num <= 10) {
-            return self::$numb[(int)$num] . ' ';
+            $firstDigit = $num / 10;
+            $secondDigit = $num % 10;
+            if ($secondDigit === 0) {
+                return self::$tens[$firstDigit] . 'desmit';
+            }
+            return self::$tens[$firstDigit] . 'desmit ' . self::$numb[$secondDigit];
+
         }
+        if ($num > 10) {
+            return self::$tens[$num % 10] . 'padsmit';
+        }
+        //$num <= 10
+        return self::$numb[$num];
+
+    }
+
+    /**
+     * @param string $number
+     * @return string
+     */
+    private static function hundredToWords(string $number): string
+    {
+        $string = '';
+
+        if ($number[0] !== '0') {
+            $string .= self::$numb[(int)$number[0]] .
+                ' ' .
+                (self::isSngular($number)  ? 'simts' : 'simti') .
+                ' ';
+        }
+
+        $tens = (int)substr('0' . $number,-2);
+
+        if ($tens > 0 || !$string) {
+            $string .= self::tenWords($tens);
+        }
+        return $string;
+    }
+
+    public static function isSngular(string $number): bool
+    {
+        if (substr($number, -3) === '100') {
+            return true;
+        }
+        if (substr($number, -1) !== '1') {
+            return false;
+        }
+        if (substr($number, -2) === '11') {
+            return false;
+        }
+
+
+        return true;
     }
 }
