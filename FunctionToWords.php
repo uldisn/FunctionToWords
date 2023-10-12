@@ -231,7 +231,7 @@ class FunctionToWords
         if ((int)$integerParts[1]) {
             $r .= self::hundredToWords($integerParts[1]) .
                 ' ' .
-                (self::isSngular($integerParts[1]) ? 'tūkstots' : 'tūkstoši') .
+                (self::isSngular($integerParts[1]) ? 'tūkstotis' : 'tūkstoši') .
                 ' ';
         }
         $r .= self::hundredToWords($integerParts[0])
@@ -279,21 +279,16 @@ class FunctionToWords
      */
     private static function hundredToWords(string $number): string
     {
-        $string = '';
-
+        $list = [];
         if ($number[0] !== '0') {
-            $string .= self::$numb[(int)$number[0]] .
-                ' ' .
-                (self::isSngular($number)  ? 'simts' : 'simti') .
-                ' ';
+            $list[] = self::$numb[(int)$number[0]];
+            $list[] = $number[0] === '1'  ? 'simts' : 'simti';
         }
-
         $tens = (int)substr('0' . $number,-2);
-
-        if ($tens > 0 || !$string) {
-            $string .= self::tenWords($tens);
+        if ($tens > 0 || !$list) {
+            $list[] = self::tenWords($tens);
         }
-        return $string;
+        return implode(' ', $list);
     }
 
     public static function isSngular(string $number): bool
