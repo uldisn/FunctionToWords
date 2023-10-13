@@ -241,12 +241,13 @@ class FunctionToWords
 
         /** decimali */
         $decimals = (int)$decimals;
+        $r .= 'un ';
         if ($decimals > 0) {
-            $r .= ' ' . self::tenWords($decimals) .
+            $r .= self::tenWords($decimals) .
                 ' ' .
                 (self::isSngular($decimals) ? $currencyName['minorSingular'] : $currencyName['minorPlural']);
         } else {
-            $r .= ' nulle ' . $currencyName['minorPlural'];
+            $r .= 'nulle ' . $currencyName['minorPlural'];
         }
 
         return $r;
