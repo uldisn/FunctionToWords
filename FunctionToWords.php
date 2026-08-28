@@ -258,8 +258,9 @@ class FunctionToWords
     {
 
         if ($num > 19) {
-            $firstDigit = $num / 10;
             $secondDigit = $num % 10;
+            $firstDigit = ($num - $secondDigit)/10;
+
             if ($secondDigit === 0) {
                 return self::$tens[$firstDigit] . 'desmit';
             }
